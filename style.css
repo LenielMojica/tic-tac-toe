@@ -30,6 +30,10 @@
   color: red;
   border: 5px solid black;
   font-weight: 1000;
+  cursor: pointer;
+}
+.board div:active {
+  background-color: gray;
 }
 
 header {

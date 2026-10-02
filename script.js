@@ -11,6 +11,15 @@ const GameBoard = (() => {
     return determineResult(player.symbol);
   }
   function determineResult(symbol) {
+    let tie = "Tie";
+    let isGameboardFull = true;
+    for (row of gameboard) {
+      for (cell of row) {
+        if (cell === "") {
+          isGameboardFull = false;
+        }
+      }
+    }
     for (let row of gameboard) {
       let isRowMatch = true;
       for (let cell of row) {
@@ -58,6 +67,9 @@ const GameBoard = (() => {
     if (isDiagMatch2) {
       return symbol;
     }
+    if (isGameboardFull) {
+      return tie;
+    }
     return false;
   }
 
@@ -75,9 +87,10 @@ const DOMgameBoard = (() => {
 
     boardContainer.appendChild(gameboard);
 
-    gameboardArr.forEach((element) => {
-      element.forEach((element) => {
+    gameboardArr.forEach((element, rindex) => {
+      element.forEach((element, cindex) => {
         const cell = document.createElement("div");
+        cell.id = `cell-${rindex}-${cindex}`;
         cell.innerHTML = element;
         gameboard.appendChild(cell);
       });
@@ -93,9 +106,4 @@ const Player = function (symbol) {
 const player1 = Player("x");
 const player2 = Player("o");
 
-GameBoard.setPlay(player1, "00");
-GameBoard.setPlay(player2, "01");
-GameBoard.setPlay(player1, "02");
-const winner = document.querySelector(".winner");
-winner.innerHTML = "hafafas";
 DOMgameBoard.renderBoard(GameBoard.getBoard());
