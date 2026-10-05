@@ -1,13 +1,36 @@
 const GameBoard = (() => {
-  const gameboard = [
+  let gameboard = [
     ["", "", ""],
     ["", "", ""],
     ["", "", ""],
   ];
+  let isOver = false;
+  function getStatus() {
+    return isOver;
+  }
+  function resetGame() {
+    gameboard = [
+      ["", "", ""],
+      ["", "", ""],
+      ["", "", ""],
+    ];
 
-  function setPlay(player, position) {
+    Game.start();
+    isOver = false;
+  }
+  function setPlay(player, position, isOver) {
+    if (isOver) {
+      return;
+    }
+
     const index = position.split("");
+    if (gameboard[index[0]][index[1]] !== "") {
+      return;
+    }
     gameboard[index[0]][index[1]] = player.symbol;
+
+    Game.changeTurns();
+    DOMgameBoard.renderBoard(gameboard);
     return determineResult(player.symbol);
   }
   function determineResult(symbol) {
@@ -28,7 +51,8 @@ const GameBoard = (() => {
         }
       }
       if (isRowMatch) {
-        return symbol;
+        isOver = true;
+        return alert(symbol + " wins");
       }
     }
     for (let col = 0; col < gameboard.length; col++) {
@@ -40,7 +64,8 @@ const GameBoard = (() => {
         }
       }
       if (isColmatch) {
-        return symbol;
+        isOver = true;
+        return alert(symbol + " wins");
       }
     }
     let isDiagMatch1 = true;
@@ -51,7 +76,8 @@ const GameBoard = (() => {
       }
     }
     if (isDiagMatch1) {
-      return symbol;
+      isOver = true;
+      return alert(symbol + " wins");
     }
     let isDiagMatch2 = true;
     for (
@@ -65,45 +91,100 @@ const GameBoard = (() => {
       }
     }
     if (isDiagMatch2) {
-      return symbol;
+      isOver = true;
+      return alert(symbol + " wins");
     }
     if (isGameboardFull) {
-      return tie;
+      isOver = true;
+      return alert("Its a tie");
     }
-    return false;
+    return "";
   }
 
   function getBoard() {
     return gameboard;
   }
-  return { setPlay, getBoard };
+  return { setPlay, getBoard, getStatus, resetGame };
 })();
 const DOMgameBoard = (() => {
   function renderBoard(gameboardArr) {
+    const handler = document.createElement("div");
+    handler.classList.add("handler");
+    const turn = document.createElement("p");
+    const winner = document.createElement("p");
+    turn.classList.add("turn");
+    winner.classList.add("winner");
+    const controlContainer = document.createElement("div");
+
+    const resetBtn = document.createElement("button");
+    resetBtn.innerHTML = "Reset";
+
     const boardContainer = document.querySelector(".board-container");
     boardContainer.innerHTML = "";
     const gameboard = document.createElement("div");
     gameboard.classList.add("board");
-
+    handler.appendChild(turn);
+    handler.appendChild(resetBtn);
     boardContainer.appendChild(gameboard);
+
+    boardContainer.appendChild(handler);
+    turn.innerHTML = "It's " + Game.getCurrentPlayer().symbol + "'s turn!";
+    boardContainer.appendChild(controlContainer);
+
+    resetBtn.addEventListener("click", () => {
+      GameBoard.resetGame();
+    });
 
     gameboardArr.forEach((element, rindex) => {
       element.forEach((element, cindex) => {
         const cell = document.createElement("div");
-        cell.id = `cell-${rindex}-${cindex}`;
+        cell.id = `cell-${rindex}${cindex}`;
         cell.innerHTML = element;
         gameboard.appendChild(cell);
+        cell.addEventListener("click", () => {
+          const coordinates = cell.id.split("-");
+          GameBoard.setPlay(
+            Game.getCurrentPlayer(),
+            coordinates[1],
+            GameBoard.getStatus(),
+          );
+        });
       });
     });
   }
   return { renderBoard };
 })();
-const Player = function (symbol) {
+const Player = function (symbol, turn) {
   return {
     symbol,
+    turn,
   };
 };
-const player1 = Player("x");
-const player2 = Player("o");
+const Game = (() => {
+  let turn = 1;
+  const player1 = Player("x", 1);
+  const player2 = Player("o", 2);
+  function start() {
+    turn = 1;
+    DOMgameBoard.renderBoard(GameBoard.getBoard());
+  }
+  function getCurrentPlayer() {
+    if (turn === 1) {
+      return player1;
+    } else {
+      return player2;
+    }
+  }
+  function changeTurns() {
+    if (turn === 1) {
+      turn = 2;
+    } else {
+      turn = 1;
+    }
+    return turn;
+  }
 
-DOMgameBoard.renderBoard(GameBoard.getBoard());
+  return { start, changeTurns, getCurrentPlayer };
+})();
+
+Game.start();
